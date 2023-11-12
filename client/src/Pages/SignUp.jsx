@@ -1,5 +1,4 @@
-import { set } from "mongoose";
-import { useState } from "react";
+import {React, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {
@@ -46,14 +45,14 @@ export default function SignUp() {
           onChange={handleChange}
         />
         <input
-          className="border-2 border-gray-300 rounded-md p-3 onChange={handleChange}"
+          className="border-2 border-gray-300 rounded-md p-3 "
           type="text"
           placeholder="email"
           id="email"
           onChange={handleChange}
         />
         <input
-          className="border-2 border-gray-300 rounded-md p-3 onChange={handleChange}"
+          className="border-2 border-gray-300 rounded-md p-3 "
           type="password"
           placeholder="password"
           id="password"
