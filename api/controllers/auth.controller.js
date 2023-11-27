@@ -31,7 +31,7 @@ export const signin = async (req, res, next) => {
     // destructuring password from validUser
     // prevents the password from being sent to the client
     const { password: hashedPassword, ...rest } = validUser._doc;
-    res.cookie("token", token, { httpOnly: true }).status(200).json(rest);
+    res.cookie("access_token", token, { httpOnly: true }).status(200).json(rest);
   } catch (error) {
     next(error);
   }
