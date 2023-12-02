@@ -61,8 +61,16 @@ export const google = async (req, res, next) => {
         expiresIn: "1d",
       });
       const { password: pass, ...rest } = newUser._doc;
-      res.cookie("token", token, { httpOnly: true }).status(200).json(rest);
+      res.cookie("access_token", token, { httpOnly: true }).status(200).json(rest);
     }
+  } catch (error) {
+    next(error);
+  }
+};
+export const signout = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token");
+    res.status(200).json({ message: "Signout successful" });
   } catch (error) {
     next(error);
   }
