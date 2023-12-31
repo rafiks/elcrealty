@@ -1,6 +1,11 @@
 import { useSelector } from "react-redux";
 import { useRef, useState, useEffect } from "react";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
 import { app } from "../firebase";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
@@ -13,10 +18,8 @@ import {
   deleteUserStart,
   signoutUserFailure,
   signoutUserSuccess,
-  signoutUserStart
+  signoutUserStart,
 } from "../redux/user/userSlice.js";
-
-
 
 // firebase storage
 // allow read;
@@ -32,7 +35,9 @@ export default function Profile() {
   const [fileUploadError, setFileUploadError] = useState(null);
   const [formData, setFormData] = useState({});
   const dispatch = useDispatch();
-  const [updateSuccess, setUpdateSuccess ] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [showListingsError, setShowListingsError] = useState(false);
+  const [userListings, setUserListings] = useState([]);
 
   useEffect(() => {
     if (file) {
@@ -49,7 +54,8 @@ export default function Profile() {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setFilePerc(Math.round(progress));
       },
       (error) => {
@@ -59,26 +65,25 @@ export default function Profile() {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setFormData({ ...formData, avatar: downloadURL });
         });
-      }
+      },
     );
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value })
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
       const data = await res.json();
       if (data.success === false) {
         dispatch(updateUserFailure(data.message));
@@ -86,8 +91,7 @@ export default function Profile() {
       }
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
-    }
-    catch (error) {
+    } catch (error) {
       dispatch(updateUserFailure(error.message));
     }
   };
@@ -95,18 +99,16 @@ export default function Profile() {
   const handleDeleteUser = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`,
-        {
-          method: 'DELETE',
-        });
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
       const data = await res.json();
       if (data.success === false) {
         dispatch(deleteUserFailure(data.message));
         return;
       }
       dispatch(deleteUserSuccess(data));
-    }
-    catch (error) {
+    } catch (error) {
       dispatch(deleteUserFailure(error.message));
     }
   };
@@ -114,7 +116,7 @@ export default function Profile() {
   const handleSignout = async () => {
     try {
       dispatch(signoutUserStart());
-      const res = await fetch('/api/auth/signout');
+      const res = await fetch("/api/auth/signout");
       const data = await res.json();
 
       if (data.success === false) {
@@ -122,9 +124,23 @@ export default function Profile() {
         return;
       }
       dispatch(signoutUserSuccess(data));
-    }
-    catch (error) {
+    } catch (error) {
       dispatch(signoutUserFailure(error.message));
+    }
+  };
+
+  const handleShowListings = async () => {
+    try {
+      setShowListingsError(false);
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        setShowListingsError(true);
+        return;
+      }
+      setUserListings(data);
+    } catch (error) {
+      setShowListingsError(true);
     }
   };
 
@@ -137,7 +153,8 @@ export default function Profile() {
           type="file"
           ref={fileRef}
           hidden
-          accept="image/*" />
+          accept="image/*"
+        />
         <img
           onClick={() => fileRef.current.click()}
           src={formData.avatar || currentUser.avatar}
@@ -147,15 +164,14 @@ export default function Profile() {
         <p className="text-sm self-center">
           {fileUploadError ? (
             <span className="text-red-700">
-              Error image upload(image should be less than 2mb)</span>
+              Error image upload(image should be less than 2mb)
+            </span>
           ) : filePerc > 0 && filePerc < 100 ? (
-            <span className="text-slate-700 ">
-              Uploading {filePerc}%</span>
+            <span className="text-slate-700 ">Uploading {filePerc}%</span>
           ) : filePerc === 100 ? (
-            <span className="text-green-700">
-              Image successfully uploaded!</span>
+            <span className="text-green-700">Image successfully uploaded!</span>
           ) : (
-            ''
+            ""
           )}
         </p>
         <input
@@ -181,15 +197,68 @@ export default function Profile() {
           placeholder="password"
           onChange={handleChange}
         />
-        <button className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">{loading ? 'Loading...' : 'Update'}</button>
-        <Link className="bg-green-700 text-white rounded-lg p-3 uppercase text-center hover:opacity-95 disabled:opacity-80 " to={"/create-listing"}>Create listing</Link>
+        <button className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
+          {loading ? "Loading..." : "Update"}
+        </button>
+        <Link
+          className="bg-green-700 text-white rounded-lg p-3 uppercase text-center hover:opacity-95 disabled:opacity-80 "
+          to={"/create-listing"}
+        >
+          Create listing
+        </Link>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer" onClick={handleDeleteUser}>Delete Account</span>
-        <span className="text-red-700 cursor-pointer" onClick={handleSignout}>Sign out</span>
+        <span
+          className="text-red-700 cursor-pointer"
+          onClick={handleDeleteUser}
+        >
+          Delete Account
+        </span>
+        <span className="text-red-700 cursor-pointer" onClick={handleSignout}>
+          Sign out
+        </span>
       </div>
-      <p className="text-red-700 mt-5">{error ? error : ''}</p>
-      <p className="text-green-700 mt-5">{updateSuccess ? 'Profile updated successfully!' : ''}</p>
+      <p className="text-red-700 mt-5">{error ? error : ""}</p>
+      <p className="text-green-700 mt-5">
+        {updateSuccess ? "Profile updated successfully!" : ""}
+      </p>
+      <button onClick={handleShowListings} className="text-green-700 w-full">
+        Show Listings
+      </button>
+      <p className="text-red-700 mt-5">
+        {showListingsError ? "Error showing listings" : ""}
+      </p>
+      {userListings && userListings.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h1 className="text-2xl font-semibold text-center mt-7">
+            Your Listings
+          </h1>
+          {userListings.map((listing) => (
+            <div
+              key={listing._id}
+              className="border rounded-lg p-3 flex justify-between items-center gap-3"
+            >
+              <Link to={`/listing/${listing._id}`}>
+                <img
+                  className="h-16 w-16 object-contain"
+                  alt="listing cover"
+                  src={listing.imageUrls[0]}
+                />
+              </Link>
+              <Link
+                className="text-slate-700 font-semibold flex-1 hover:underline truncate"
+                to={`/listing/${listing._id}`}
+              >
+                <p>{listing.name}</p>
+              </Link>
+              <div className="flex flex-col item-center">
+                <button className="text-red-700">Delete</button>
+                <button className="text-green-700">Edit</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
