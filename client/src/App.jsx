@@ -20,10 +20,7 @@ export default function App() {
         <Route path="/listing/:listingId" element={<Listing />} />
         <Route element={<PrivateRoute />}>
           <Route path="/profile" element={<Profile />} />
-          <Route
-            path="/create-listing/:listingId"
-            element={<CreateListing />}
-          />
+          <Route path="/create-listing" element={<CreateListing />} />
           <Route
             path="/update-listing/:listingId"
             element={<UpdateListing />}
